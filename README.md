@@ -1,81 +1,35 @@
-# CSV AI Chatbot 🤖
+# CSV AI Chatbot
 
-An AI-powered chatbot that allows users to interact with CSV datasets using natural language. Instead of manually exploring rows, columns, and statistics, users can upload a CSV file and ask questions about their data to receive relevant, AI-generated responses.
+Ask questions about any CSV in plain English. Gemini decides *what* to compute; Pandas does the actual calculation on your data.
 
-## 🚀 Features
+**Stack:** Python, Pandas, Gemini API, Streamlit
 
-- **CSV File Upload:** Upload CSV datasets directly through the Streamlit interface.
-- **Natural Language Queries:** Ask questions about your dataset using simple English.
-- **AI-Powered Responses:** Uses Google's Gemini API to understand questions and generate relevant answers.
-- **Data Processing:** Uses Pandas to read, process, and analyze uploaded datasets.
-- **Dynamic Dataset Support:** Works with different CSV datasets instead of being restricted to a predefined dataset.
-- **Interactive Interface:** Provides a simple and user-friendly interface built with Streamlit.
+## Features
+- Natural-language querying of arbitrary CSVs (LLM -> structured plan -> Pandas execution)
+- Streamlit UI: live data preview, column type analysis, statistical summaries, persistent chat history
+- Validation of operations and columns, so unsupported or invalid queries get a clear message instead of wrong numbers
 
-## 🛠️ Tech Stack
+- Auto-detected date columns (filter by date, group by year/month/quarter/weekday)
+- Multi-step questions via a guarded code-execution fallback: Gemini writes pandas code, which is statically checked (no imports, file/network access or dunder tricks) and run with restricted builtins on a copy of the data. The generated code is always shown. This is a guardrail, not a hardened sandbox, so don't expose it publicly with untrusted users
+- Handles utf-8/latin-1 encodings and comma/semicolon/tab delimiters
 
-- **Programming Language:** Python
-- **Data Processing:** Pandas
-- **AI Integration:** Google Gemini API
-- **Frontend:** Streamlit
-
-## ⚙️ How It Works
-
-1. Upload a CSV file through the application.
-2. The application reads and processes the dataset using Pandas.
-3. Enter a question about the uploaded data in natural language.
-4. The Gemini API helps interpret the query and generate a relevant response.
-5. View the generated answer through the Streamlit interface.
-
-## 📂 Project Structure
-
-```text
-CSV-AI-Chatbot/
-│
-├── app.py
-├── requirements.txt
-├── .env
-└── README.md
-```
-
-## 💻 Installation and Setup
-
-**1. Clone the repository**
-
-```bash
-git clone <your-repository-url>
-cd CSV-AI-Chatbot
-```
-
-**2. Install dependencies**
-
+## Run it
 ```bash
 pip install -r requirements.txt
-```
-
-**3. Configure your Gemini API key**
-
-Create a `.env` file in the project directory and add:
-
-```env
-GEMINI_API_KEY=your_api_key_here
-```
-
-**4. Run the application**
-
-```bash
+export GEMINI_API_KEY=your_key   # or paste it in the sidebar
 streamlit run app.py
 ```
+Get a key at https://aistudio.google.com/apikey
 
-The application will open in your browser.
+## How it works
+1. Gemini sees only the schema + 3 sample rows, never the full dataset.
+2. It returns a JSON plan: operation, column(s), group-by, filters.
+3. The plan is validated (whitelisted operations, real columns, numeric type checks).
+4. Pandas executes it on the full dataframe and the result is displayed.
 
-## 🔮 Future Improvements
-
-- Support for additional file formats such as Excel.
-- Data visualization through automatically generated charts.
-- Advanced statistical analysis.
-- Improved handling of complex queries.
-- Support for larger datasets.
-
-## 👩‍💻 Author
-
-Developed as a Python and Generative AI project to explore how Large Language Models can simplify data analysis through natural language interaction.
+## Example questions
+- "What's the average of price?"
+- "Top 5 rows by revenue"
+- "Total sales grouped by region"
+- "How many rows where age > 30?"
+- "Correlation between height and weight"
